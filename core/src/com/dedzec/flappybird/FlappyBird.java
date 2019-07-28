@@ -19,8 +19,10 @@ public class FlappyBird extends ApplicationAdapter {
 	private Texture fundo;
 	private Texture canoBaixo;
 	private Texture canoTopo;
+	private  Texture gameOver;
 	private Random numeroRandomico;
 	private BitmapFont fonte;
+	private BitmapFont mensagem;
 	private Circle passaroCirculo;
 	private Rectangle canoTopoRetangulo;
 	private Rectangle canoBaixoRetangulo;
@@ -29,7 +31,7 @@ public class FlappyBird extends ApplicationAdapter {
 	// Atributos de configuração
 	private int larguraDispositivo;
 	private int alturaDispositivo;
-	private int estadoJogo=0; // 0-> jogo não iniciado 1-> jogo iniciado
+	private int estadoJogo=0; // 0-> jogo não iniciado 1-> jogo iniciado 2-> jogo Game Over
 	private int pontuacao=0;
 
 	private float variacao = 0;
@@ -55,6 +57,10 @@ public class FlappyBird extends ApplicationAdapter {
 		fonte.setColor(Color.WHITE);
 		fonte.getData().setScale(6);
 
+		mensagem = new BitmapFont();
+		mensagem.setColor(Color.WHITE);
+		mensagem.getData().setScale(3);
+
 		passaros = new Texture[3];
 		passaros[0] = new Texture("passaro1.png");
 		passaros[1] = new Texture("passaro2.png");
@@ -63,6 +69,7 @@ public class FlappyBird extends ApplicationAdapter {
 		fundo = new Texture("fundo.png");
 		canoBaixo = new Texture("cano_baixo.png");
 		canoTopo = new Texture("cano_topo.png");
+		gameOver = new Texture("game_over.png");
 
 		larguraDispositivo = Gdx.graphics.getWidth();
 		alturaDispositivo = Gdx.graphics.getHeight();
@@ -85,33 +92,50 @@ public class FlappyBird extends ApplicationAdapter {
 				estadoJogo = 1;
 			}
 
-		} else {
+		} else {//Iniciado
 
-			posicaoMovimentoCanoHorizontal -= deltaTime * 200;
 			velocidadeQueda++;
-
-			if (Gdx.input.justTouched()) {
-				velocidadeQueda = -15;
-			}
-
 			if (posicaoInicialVertical > 0 || velocidadeQueda < 0) {
 				posicaoInicialVertical -= velocidadeQueda;
 			}
 
-			// Verifica se o cano saiu inteiramente da tela
-			if (posicaoMovimentoCanoHorizontal < -canoTopo.getWidth()) {
-				posicaoMovimentoCanoHorizontal = larguraDispositivo;
-				alturaEntreCanosRandomica = numeroRandomico.nextInt(400) - 200;
-				marcouPonto = false;
+			if ( estadoJogo == 1) {
+
+				posicaoMovimentoCanoHorizontal -= deltaTime * 200;
+
+				if (Gdx.input.justTouched()) {
+					velocidadeQueda = -15;
+				}
+
+				// Verifica se o cano saiu inteiramente da tela
+				if (posicaoMovimentoCanoHorizontal < -canoTopo.getWidth()) {
+					posicaoMovimentoCanoHorizontal = larguraDispositivo;
+					alturaEntreCanosRandomica = numeroRandomico.nextInt(400) - 200;
+					marcouPonto = false;
+				}
+
+				// Verificar pontuação
+				if (posicaoMovimentoCanoHorizontal < 120) {
+					if ( !marcouPonto ) {
+						pontuacao++;
+						marcouPonto = true;
+					}
+				}
+
+			} else {//Tela de game over
+
+				if (Gdx.input.justTouched()) {
+
+					estadoJogo = 0;
+					pontuacao = 0;
+					velocidadeQueda = 0;
+					posicaoInicialVertical = alturaDispositivo / 2;
+					posicaoMovimentoCanoHorizontal = larguraDispositivo;
+
+				}
+
 			}
 
-			// Verificar pontuação
-			if (posicaoMovimentoCanoHorizontal < 120) {
-				if ( !marcouPonto ) {
-					pontuacao++;
-					marcouPonto = true;
-				}
-			}
 		}
 
 		batch.begin();
@@ -121,6 +145,11 @@ public class FlappyBird extends ApplicationAdapter {
 		batch.draw(canoBaixo, posicaoMovimentoCanoHorizontal, alturaDispositivo / 2 - canoBaixo.getHeight() - espacoEntreCanos / 2 + alturaEntreCanosRandomica);
 		batch.draw(passaros[ (int) variacao ], 120, posicaoInicialVertical);
 		fonte.draw(batch, String.valueOf(pontuacao), larguraDispositivo / 2, alturaDispositivo - 50);
+
+		if (estadoJogo == 2) {
+			batch.draw(gameOver, larguraDispositivo / 2 - gameOver.getWidth() / 2, alturaDispositivo / 2);
+			mensagem.draw(batch, "Toque para Reiniciar!", larguraDispositivo / 2 - 200, alturaDispositivo / 2 - gameOver.getHeight()/2);
+		}
 
 		batch.end();
 
@@ -143,8 +172,9 @@ public class FlappyBird extends ApplicationAdapter {
 		shape.end();*/
 
 		// Teste de Colisão
-		if (Intersector.overlaps(passaroCirculo, canoBaixoRetangulo) || Intersector.overlaps(passaroCirculo, canoTopoRetangulo)) {
-			
+		if (Intersector.overlaps(passaroCirculo, canoBaixoRetangulo) || Intersector.overlaps(passaroCirculo, canoTopoRetangulo)
+				|| posicaoInicialVertical <= 0 || posicaoInicialVertical >= alturaDispositivo) {
+			estadoJogo = 2;
 		}
 	}
 
