@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 
 import java.util.Random;
 
@@ -18,6 +21,10 @@ public class FlappyBird extends ApplicationAdapter {
 	private Texture canoTopo;
 	private Random numeroRandomico;
 	private BitmapFont fonte;
+	private Circle passaroCirculo;
+	private Rectangle canoTopoRetangulo;
+	private Rectangle canoBaixoRetangulo;
+	//private ShapeRenderer shape;
 
 	// Atributos de configuração
 	private int larguraDispositivo;
@@ -40,6 +47,10 @@ public class FlappyBird extends ApplicationAdapter {
 		// Manipulação das texturas
 		batch = new SpriteBatch();
 		numeroRandomico = new Random();
+		passaroCirculo = new Circle();
+		/*canoBaixoRetangulo = new Rectangle();
+		canoTopoRetangulo = new Rectangle();
+		shape = new ShapeRenderer();*/
 		fonte = new BitmapFont();
 		fonte.setColor(Color.WHITE);
 		fonte.getData().setScale(6);
@@ -113,6 +124,28 @@ public class FlappyBird extends ApplicationAdapter {
 
 		batch.end();
 
+		passaroCirculo.set(120 + passaros[0].getWidth() / 2, posicaoInicialVertical + passaros[0].getHeight() / 2, passaros[0].getWidth() / 2);
+		canoBaixoRetangulo = new Rectangle(
+				posicaoMovimentoCanoHorizontal, alturaDispositivo / 2 - canoBaixo.getHeight() - espacoEntreCanos / 2 + alturaEntreCanosRandomica,
+				canoBaixo.getWidth(), canoBaixo.getHeight()
+		);
+		canoTopoRetangulo = new Rectangle(
+				posicaoMovimentoCanoHorizontal, alturaDispositivo / 2 + espacoEntreCanos / 2 + alturaEntreCanosRandomica,
+				canoTopo.getWidth(), canoTopo.getHeight()
+		);
+
+		// Desenhar formas
+		/*shape.begin(ShapeRenderer.ShapeType.Filled);
+		shape.circle(passaroCirculo.x, passaroCirculo.y, passaroCirculo.radius);
+		shape.rect(canoBaixoRetangulo.x,canoBaixoRetangulo.y,canoBaixoRetangulo.width,canoBaixoRetangulo.height);
+		shape.rect(canoTopoRetangulo.x, canoTopoRetangulo.y, canoTopoRetangulo.width, canoTopoRetangulo.height);
+		shape.setColor(Color.RED);
+		shape.end();*/
+
+		// Teste de Colisão
+		if (Intersector.overlaps(passaroCirculo, canoBaixoRetangulo) || Intersector.overlaps(passaroCirculo, canoTopoRetangulo)) {
+			
+		}
 	}
 
 }
